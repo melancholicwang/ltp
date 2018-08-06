@@ -188,6 +188,10 @@ int main(int argc, char *argv[]) {
   if (vm.count("parser-model")) {
     parser_model= vm["parser-model"].as<std::string>();
   }
+  std::string semparser_model = "ltp_data/semparser.model";
+  if (vm.count("semparser-model")) {
+    semparser_model= vm["semparser-model"].as<std::string>();
+  }
 
   std::string srl_model= "ltp_data/pisrl.model";
   if (vm.count("srl-data")) {
@@ -195,7 +199,7 @@ int main(int argc, char *argv[]) {
   }
 
   LTP engine(last_stage, segmentor_model, segmentor_lexicon, postagger_model,
-      postagger_lexcion, ner_model, parser_model, srl_model);
+      postagger_lexcion, ner_model, parser_model, semparser_model, srl_model);
 
   if (!engine.loaded()) {
     std::cerr << "Failed to load LTP" << std::endl;

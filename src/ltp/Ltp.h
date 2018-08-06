@@ -19,6 +19,7 @@
 #define LTP_SERVICE_NAME_POSTAG   "pos"
 #define LTP_SERVICE_NAME_NER      "ner"
 #define LTP_SERVICE_NAME_DEPPARSE "dp"
+#define LTP_SERVICE_NAME_SEMDEPPARSE "sdp"
 #define LTP_SERVICE_NAME_SRL      "srl"
 #define LTP_SERVICE_NAME_ALL      "all"
 #define LTP_SERVICE_NAME_DEFAULT   LTP_SERVICE_NAME_ALL
@@ -33,8 +34,9 @@ enum ErrorCodes {
   kWordsegError,          /*< Failed to perform wordseg */
   kPostagError,           /*< Failed to perform postag  */
   kParserError,           /*< Failed to perform parsing */
+  kSemanticParserError,	  /*< Failed to perform semanticparsing */
   kNERError,              /*< Failed to perform NER     */
-  kSRLError,              /*< Failed to perform srl     */
+  kSRLError,              /*< Failed to perform SRL     */
   kEncodingError,         /*< Sentence encoding not in UTF-8 */
   kXmlParseError,         /*< Input xml is not well formatted */
   kSentenceTooLongError,  /*< More than 300 characters or 70 words */
@@ -48,6 +50,7 @@ public:
   static const int kActivePostagger = 1<<2;
   static const int kActiveNER       = 1<<3;
   static const int kActiveParser    = 1<<4;
+  static const int kActiveSemanticParser = 1<<5;
   static const int kActiveSRL       = 1<<5;
 
 public:
@@ -58,6 +61,7 @@ public:
   const std::string& postagger_lexicon_file,
   const std::string& ner_model_file,
   const std::string& parser_model_file,
+  const std::string& semantic_parser_model_file,
   const std::string& srl_model_dir);
 
   ~LTP();  //! The deallocator
@@ -103,6 +107,14 @@ public:
    *  @return         int   0 on success, otherwise -1
    */
   int parser(XML4NLP & xml);
+  
+  /*
+   * do semantic dependency parsing
+   *
+   *  @param[in/out]  xml   the xml storing ltp result
+   *  @return         int   0 on success, otherwise -1
+   */
+  int semantic_parser(XML4NLP & xml);
 
   /*
    * do semantic role labeling
@@ -114,6 +126,7 @@ public:
 
   int splitSentence_dummy(XML4NLP & xml);
 private:
+
   /*
    * parse the config file, and load resource according the config
    *
@@ -127,6 +140,8 @@ private:
        const std::string& postagger_lexicon_file,
        const std::string& ner_model_file,
        const std::string& parser_model_file,
+       const std::string& semantic_parser_model_file,
+       const std::string& srl_model_dir,
        const std::string& srl_model_file);
 
 private:

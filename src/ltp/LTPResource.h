@@ -63,6 +63,7 @@ public:
   int LoadSemanticParserResource(const std::string& model_file);
 
   /**
+
    * load lstm semantic parser resource from model file. Return 0 on success,
    * otherwise -1.
    *

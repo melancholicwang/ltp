@@ -2,6 +2,7 @@
 #include <ctime>
 #include <map>
 #include <string>
+#include <utils/strutils.hpp>
 
 #include "xml4nlp/Xml4nlp.h"
 #include "splitsnt/SplitSentence.h"
@@ -13,14 +14,14 @@
 #include "utils/codecs.hpp"
 #include "utils/logging.hpp"
 
-#if _WIN32
-#pragma warning(disable: 4786 4284)
-#pragma comment(lib, "segmentor.lib")
-#pragma comment(lib, "postagger.lib")
-#pragma comment(lib, "parser.lib")
-#pragma comment(lib, "ner.lib")
-#pragma comment(lib, "srl.lib")
-#endif
+//#if _WIN32
+//#pragma warning(disable: 4786 4284)
+//#pragma comment(lib, "segmentor.lib")
+//#pragma comment(lib, "postagger.lib")
+//#pragma comment(lib, "parser.lib")
+//#pragma comment(lib, "ner.lib")
+//#pragma comment(lib, "srl.lib")
+//#endif
 
 // create a platform
 LTP::LTP(const std::string& last_stage,
@@ -50,23 +51,28 @@ bool LTP::load(const std::string& last_stage,
     const std::string& ner_model_file,
     const std::string& parser_model_file,
 	  const std::string& semantic_parser_model_file,
-    const std::string& srl_model_dir) {
+    const std::string& srl_model_dir),
+    const std::string& srl_model_file) {
 
   size_t target_mask = 0;
-  if (last_stage == LTP_SERVICE_NAME_SEGMENT) {
-    target_mask = kActiveSegmentor;
-  } else if (last_stage == LTP_SERVICE_NAME_POSTAG) {
-    target_mask = (kActiveSegmentor|kActivePostagger);
-  } else if (last_stage == LTP_SERVICE_NAME_NER) {
-    target_mask = (kActiveSegmentor|kActivePostagger|kActiveNER);
-  } else if (last_stage == LTP_SERVICE_NAME_DEPPARSE) {
-    target_mask = (kActiveSegmentor|kActivePostagger|kActiveParser);
-  } else if (last_stage == LTP_SERVICE_NAME_SEMDEPPARSE) {
-    target_mask = (kActiveSegmentor|kActivePostagger|kActiveSemanticParser);
-  } else if ((last_stage == LTP_SERVICE_NAME_SRL) || (last_stage == "all")) {
-    target_mask =
-      (kActiveSegmentor|kActivePostagger|kActiveNER|kActiveParser|
-       kActiveSemanticParser|kActiveSRL);
+  vector<string> stages = ltp::strutils::split_by_sep(last_stage, "|");
+  for (int j = 0; j < stages.size(); ++j) {
+    if (stages[j] == LTP_SERVICE_NAME_SEGMENT) {
+      target_mask |= kActiveSegmentor;
+    } else if (stages[j] == LTP_SERVICE_NAME_POSTAG) {
+      target_mask |= (kActiveSegmentor | kActivePostagger);
+    } else if (stages[j] == LTP_SERVICE_NAME_NER) {
+      target_mask |= (kActiveSegmentor | kActivePostagger | kActiveNER);
+    } else if (stages[j] == LTP_SERVICE_NAME_DEPPARSE) {
+      target_mask |= (kActiveSegmentor | kActivePostagger | kActiveParser);
+    } else if (stages[j] == LTP_SERVICE_NAME_SEMDEPPARSE) {
+    target_mask |= (kActiveSegmentor | kActivePostagger | kActiveSemanticParser);
+    } else if (stages[j] == LTP_SERVICE_NAME_SRL) {
+      target_mask |= (kActiveSegmentor | kActivePostagger | kActiveParser | kActiveSRL);
+    } else if (stages[j] == "all") {
+      target_mask |=
+              (kActiveSegmentor | kActivePostagger | kActiveNER | kActiveParser | kActiveSRL);
+    }
   }
 
   size_t loaded_mask = 0;
@@ -114,7 +120,7 @@ bool LTP::load(const std::string& last_stage,
     }
     loaded_mask |= kActiveParser;
   }
-   
+
   if (target_mask & kActiveSemanticParser) {
     if (0 != _resource.LoadSemanticParserResource(semantic_parser_model_file)) {
       ERROR_LOG("in LTP::semantic_parser, failed to load semantic parser resource");
@@ -136,6 +142,7 @@ bool LTP::load(const std::string& last_stage,
     return false;
   }
 
+  INFO_LOG("Resources loading finished.");
   return true;
 }
 
@@ -510,7 +517,7 @@ int LTP::srl(XML4NLP & xml) {
     vector<string>              vecPOS;
     vector<string>              vecNE;
     vector< pair<int, string> > vecParse;
-    vector< pair<int, vector< pair<const char *, pair< int, int > > > > > vecSRLResult;
+    vector< pair<int, vector< pair<string, pair< int, int > > > > > vecSRLResult;
 
     if (xml.GetWordsFromSentence(vecWord, i) != 0) {
       ERROR_LOG("in LTP::ner, failed to get words from xml");
@@ -532,7 +539,7 @@ int LTP::srl(XML4NLP & xml) {
       return kReadXmlError;
     }
 
-    if (0 != SRL(vecWord, vecPOS, vecNE, vecParse, vecSRLResult)) {
+    if (0 != srl_dosrl(vecWord, vecPOS, vecParse, vecSRLResult)) {
       ERROR_LOG("in LTP::srl, failed to perform srl on sent. #%d", i+1);
       return kSRLError;
     }

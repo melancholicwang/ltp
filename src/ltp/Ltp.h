@@ -2,6 +2,7 @@
 #define __LTP_H__
 
 #include "LTPResource.h"
+#include "config.h"
 #include "xml4nlp/Xml4nlp.h"
 #include <iostream>
 #include <string>
@@ -16,10 +17,16 @@
 
 #define LTP_SERVICE_NAME_SEGMENT  "ws"
 #define LTP_SERVICE_NAME_POSTAG   "pos"
-#define LTP_SERVICE_NAME_NER      "ne"
+#define LTP_SERVICE_NAME_NER      "ner"
 #define LTP_SERVICE_NAME_DEPPARSE "dp"
 #define LTP_SERVICE_NAME_SEMDEPPARSE "sdp"
 #define LTP_SERVICE_NAME_SRL      "srl"
+#define LTP_SERVICE_NAME_ALL      "all"
+#define LTP_SERVICE_NAME_DEFAULT   LTP_SERVICE_NAME_ALL
+
+#define LTP_SERVICE_OUTPUT_FORMAT_XML "xml"
+#define LTP_SERVICE_OUTPUT_FORMAT_JSON "json"
+#define LTP_SERVICE_OUTPUT_FORMAT_DEFAULT LTP_SERVICE_OUTPUT_FORMAT_XML
 
 enum ErrorCodes {
   kEmptyStringError = 1,  /*< The input sentence is empty */
@@ -44,7 +51,7 @@ public:
   static const int kActiveNER       = 1<<3;
   static const int kActiveParser    = 1<<4;
   static const int kActiveSemanticParser = 1<<5;
-  static const int kActiveSRL       = 1<<6;
+  static const int kActiveSRL       = 1<<5;
 
 public:
   LTP(const std::string& last_stage,
@@ -59,7 +66,6 @@ public:
 
   ~LTP();  //! The deallocator
   bool loaded() const;  //! return true on the resource successful loaded, otherwise false
-
 
   // discard
   // int CreateDOMFromTxt(const char * cszTxtFileName, XML4NLP& m_xml4nlp);
@@ -121,7 +127,6 @@ public:
   int splitSentence_dummy(XML4NLP & xml);
 private:
 
-
   /*
    * parse the config file, and load resource according the config
    *
@@ -135,8 +140,9 @@ private:
        const std::string& postagger_lexicon_file,
        const std::string& ner_model_file,
        const std::string& parser_model_file,
-	   const std::string& semantic_parser_model_file,
-       const std::string& srl_model_dir);
+       const std::string& semantic_parser_model_file,
+       const std::string& srl_model_dir,
+       const std::string& srl_model_file);
 
 private:
   LTPResource _resource;    /*< the ltp resources */

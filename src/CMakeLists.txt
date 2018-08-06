@@ -10,6 +10,7 @@ set (srl_DIR            ${SOURCE_DIR}/srl/)
 set (ltp_DIR            ${SOURCE_DIR}/ltp/)
 set (server_DIR         ${SOURCE_DIR}/server/)
 
+
 add_subdirectory ("xml4nlp")
 add_subdirectory ("splitsnt")
 add_subdirectory ("segmentor")
@@ -23,8 +24,13 @@ add_subdirectory ("console")
 
 # mongoose server is not supported in windows
 if (UNIX)
-    add_subdirectory ("unittest")
     add_subdirectory ("server")
+    # only compile unittest with gnu-c++<5.0
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
+            add_subdirectory ("unittest")
+        endif()
+    endif()
 endif()
 
 

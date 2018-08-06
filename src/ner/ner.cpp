@@ -21,7 +21,10 @@ const std::string NamedEntityRecognizer::model_header = "otner";
 const std::string NamedEntityRecognizer::delimiter = "-";
 
 NamedEntityRecognizer::NamedEntityRecognizer(): model(0), glob_con(0) {}
-NamedEntityRecognizer::~NamedEntityRecognizer() { if (model) { delete model; model = 0; } }
+NamedEntityRecognizer::~NamedEntityRecognizer() {
+  if (model) { delete model; model = 0; }
+  if (glob_con) { delete glob_con;  glob_con = 0; }
+}
 
 void NamedEntityRecognizer::build_glob_tran_cons(
     const std::unordered_set<std::string>& ne_types) {
@@ -54,8 +57,8 @@ void NamedEntityRecognizer::build_glob_tran_cons(
     }
   }
 
-  INFO_LOG("build-config: add %d constrains.", includes.size());
-  INFO_LOG("report: number of labels %d", model->num_labels());
+  //INFO_LOG("build-config: add %d constrains.", includes.size());
+  //INFO_LOG("report: number of labels %d", model->num_labels());
   glob_con = new NERTransitionConstrain(model->labels, includes);
 }
 

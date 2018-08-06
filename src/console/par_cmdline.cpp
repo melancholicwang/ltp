@@ -3,7 +3,7 @@
 #include <sstream>
 #include <list>
 #include "config.h"
-#include "parser/parser_dll.h"
+#include "parser.n/parser_dll.h"
 #include "console/dispatcher.h"
 #include "boost/program_options.hpp"
 #include "utils/strutils.hpp"
@@ -61,7 +61,7 @@ void multithreaded_parse( void * args) {
 }
 
 int main(int argc, char * argv[]) {
-  std::string usage = EXECUTABLE " in LTP " LTP_VERSION " - (C) 2012-2015 HIT-SCIR\n";
+  std::string usage = EXECUTABLE " in LTP " LTP_VERSION " - " LTP_COPYRIGHT "\n";
   usage += DESCRIPTION "\n\n";
   usage += "usage: ./" EXECUTABLE " <options>\n\n";
   usage += "options";

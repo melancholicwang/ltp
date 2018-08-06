@@ -8,14 +8,14 @@
 #include "srl/SRL_DLL.h"
 #include "utils/logging.hpp"
 
-#if _WIN32
-#pragma warning(disable: 4786 4284)
-#pragma comment(lib, "segmentor.lib")
-#pragma comment(lib, "postagger.lib")
-#pragma comment(lib, "parser.lib")
-#pragma comment(lib, "ner.lib")
-#pragma comment(lib, "srl.lib")
-#endif
+// #if _WIN32
+// #pragma warning(disable: 4786 4284)
+// #pragma comment(lib, "segmentor.lib")
+// #pragma comment(lib, "postagger.lib")
+// #pragma comment(lib, "parser.lib")
+// #pragma comment(lib, "ner.lib")
+// #pragma comment(lib, "srl.lib")
+// #endif
 
 LTPResource::LTPResource() :
   m_segmentor(NULL),
@@ -231,7 +231,6 @@ void * LTPResource::GetParser() {
   return m_parser;
 }
 
-
 /* ====================================================== *
  * Semantic parser related resource                                *
  * ====================================================== */
@@ -283,14 +282,14 @@ int LTPResource::LoadSRLResource(const char *data_folder) {
     return 0;
   }
 
-  INFO_LOG("Loading SRL resource from \"%s\"", data_folder);
+  INFO_LOG("Loading srl resource from \"%s\"", data_folder);
 
-  if (0 != SRL_LoadResource(string(data_folder))) {
-    ERROR_LOG("Failed to load SRL resource.");
+  if (0 != srl_load_resource(string(data_folder))) {
+    ERROR_LOG("Failed to load srl resource.");
     return -1;
   }
 
-  INFO_LOG("SRL resource is loaded.");
+  INFO_LOG("srl resource is loaded.");
   m_isSRLResourceLoaded = true;
   return 0;
 }
@@ -304,12 +303,12 @@ void LTPResource::ReleaseSRLResource() {
     return;
   }
 
-  if (0 != SRL_ReleaseResource()) {
-    ERROR_LOG("Failed to release SRL resource");
+  if (0 != srl_release_resource()) {
+    ERROR_LOG("Failed to release srl resource");
     return;
   }
 
-  INFO_LOG("SRL is released");
+  INFO_LOG("srl is released");
 
   m_isSRLResourceLoaded = false;
   return;

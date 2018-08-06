@@ -7,6 +7,7 @@
 #include "ltp/Ltp.h"
 #include "utils/strutils.hpp"
 #include "utils/time.hpp"
+#include "utils/xml4nlp_helper.h"
 #include "console/dispatcher.h"
 #include "boost/program_options.hpp"
 
@@ -21,6 +22,7 @@ using boost::program_options::parse_command_line;
 using ltp::strutils::trim;
 
 std::string type;
+std::string format;
 
 void multithreaded_ltp( void * args) {
   std::string sentence;
@@ -35,9 +37,9 @@ void multithreaded_ltp( void * args) {
     XML4NLP xml4nlp;
     xml4nlp.CreateDOMFromString(sentence);
 
-    if (type == "sp") {
+    /*if (type == LTP_SERVICE_NAME_SPLITSENT) {
       engine->splitSentence_dummy(xml4nlp);
-    } else if(type == LTP_SERVICE_NAME_SEGMENT) {
+    } else*/ if(type == LTP_SERVICE_NAME_SEGMENT) {
       engine->wordseg(xml4nlp);
     } else if(type == LTP_SERVICE_NAME_POSTAG) {
       engine->postag(xml4nlp);
@@ -52,15 +54,19 @@ void multithreaded_ltp( void * args) {
     }
 
     std::string result;
-    xml4nlp.SaveDOM(result);
-    xml4nlp.ClearDOM();
+    if (format == LTP_SERVICE_OUTPUT_FORMAT_JSON) {
+      result = ltp::utility::xml2jsonstr(xml4nlp, type);
+    } else { //xml
+      xml4nlp.SaveDOM(result);
+    }
     dispatcher->output(ret, result);
+    xml4nlp.ClearDOM();
   }
   return;
 }
 
 int main(int argc, char *argv[]) {
-  std::string usage = EXECUTABLE " in LTP " LTP_VERSION " - (C) 2012-2015 HIT-SCIR\n";
+  std::string usage = EXECUTABLE " in LTP " LTP_VERSION " - " LTP_COPYRIGHT "\n";
   usage += DESCRIPTION "\n\n";
   usage += "usage: ./" EXECUTABLE " <options>\n\n";
   usage += "options";
@@ -77,7 +83,10 @@ int main(int argc, char *argv[]) {
      "- " LTP_SERVICE_NAME_NER ": Named entity recognization\n"
      "- " LTP_SERVICE_NAME_DEPPARSE ": Dependency parsing\n"
      "- " LTP_SERVICE_NAME_SRL ": Semantic role labeling (equals to all)\n"
-     "- all: The whole pipeline [default]")
+     "- " LTP_SERVICE_NAME_ALL ": The whole pipeline [default]")
+    ("format", value<std::string>(), "Ouput format\n"
+     "- " LTP_SERVICE_OUTPUT_FORMAT_XML " [default]\n"
+     "- " LTP_SERVICE_OUTPUT_FORMAT_JSON)
     ("input", value<std::string>(), "The path to the input file.")
     ("segmentor-model", value<std::string>(),
      "The path to the segment model [default=ltp_data/cws.model].")
@@ -91,8 +100,8 @@ int main(int argc, char *argv[]) {
      "The path to the NER model [default=ltp_data/ner.model].")
     ("parser-model", value<std::string>(),
      "The path to the parser model [default=ltp_data/parser.model].")
-    ("srl-data", value<std::string>(),
-     "The path to the SRL model directory [default=ltp_data/srl_data/].")
+    ("srl-model", value<std::string>(),
+     "The path to the SRL model [default=ltp_data/pisrl.model].")
     ("debug-level", value<int>(), "The debug level.")
     ("help,h", "Show help information");
 
@@ -121,14 +130,29 @@ int main(int argc, char *argv[]) {
   std::string last_stage = "all";
   if (vm.count("last-stage")) {
     last_stage = vm["last-stage"].as<std::string>();
-    if (last_stage != LTP_SERVICE_NAME_SEGMENT
-        && last_stage != LTP_SERVICE_NAME_POSTAG
-        && last_stage != LTP_SERVICE_NAME_NER
-        && last_stage != LTP_SERVICE_NAME_DEPPARSE
-        && last_stage != LTP_SERVICE_NAME_SRL
-        && last_stage != "all") {
-      std::cerr << "Unknown stage name:" << last_stage << ", reset to 'all'" << std::endl;
-      last_stage = "all";
+    vector<string> stages = ltp::strutils::split_by_sep(last_stage, "|");
+
+    for (int j = 0; j < stages.size(); ++j) {
+      if (stages[j] != LTP_SERVICE_NAME_SEGMENT
+          && stages[j] != LTP_SERVICE_NAME_POSTAG
+          && stages[j] != LTP_SERVICE_NAME_NER
+          && stages[j] != LTP_SERVICE_NAME_DEPPARSE
+          && stages[j] != LTP_SERVICE_NAME_SRL
+          && stages[j] != "all") {
+        std::cerr << "Unknown stage name:" << last_stage << ", reset to 'all'" << std::endl;
+        last_stage = "all";
+        break;
+      }
+    }
+  }
+
+  format = LTP_SERVICE_OUTPUT_FORMAT_DEFAULT;
+  if (vm.count("format")) {
+    format = vm["format"].as<std::string>();
+    if (format != LTP_SERVICE_OUTPUT_FORMAT_XML
+        && format != LTP_SERVICE_OUTPUT_FORMAT_JSON) {
+      std::cerr << "Unknown format:" << last_stage << ", reset to '" LTP_SERVICE_OUTPUT_FORMAT_DEFAULT "'" << std::endl;
+      format = LTP_SERVICE_OUTPUT_FORMAT_DEFAULT;
     }
   }
 
@@ -169,13 +193,13 @@ int main(int argc, char *argv[]) {
     semparser_model= vm["semparser-model"].as<std::string>();
   }
 
-  std::string srl_data= "ltp_data/srl/";
+  std::string srl_model= "ltp_data/pisrl.model";
   if (vm.count("srl-data")) {
-    srl_data = vm["srl-data"].as<std::string>();
+    srl_model = vm["srl-data"].as<std::string>();
   }
 
   LTP engine(last_stage, segmentor_model, segmentor_lexicon, postagger_model,
-      postagger_lexcion, ner_model, parser_model, semparser_model, srl_data);
+      postagger_lexcion, ner_model, parser_model, semparser_model, srl_model);
 
   if (!engine.loaded()) {
     std::cerr << "Failed to load LTP" << std::endl;

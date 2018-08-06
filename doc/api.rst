@@ -1,5 +1,7 @@
-编程接口
+使用编程接口
 =========
+
+如果要使用编程接口，您需要自己在开发环境中从源代码编译出相关的链接库，编译方法可以参考 :ref:`install-label` 一节
 
 下面的文档将介绍使用LTP编译产生的静态链接库编写程序的方法。
 
@@ -41,35 +43,35 @@
 
 下面给出Linux、Windows两个平台下的编译示例。
 
-Windows(MSVC)编译
+在 Windows (MSVC) 下使用动态库
 ~~~~~~~~~~~~~~~~~~
 
 1. 添加头文件路径
 
     右键工程->Configuration properties->c/c++->general->additional include directories
 
-    .. image:: http://ir.hit.edu.cn/ltp-2014/images/include.png
+    .. image:: http://p5xnn6ehz.bkt.clouddn.com/ltp-doc-img-3.6.1-1.png
 
 2. 添加动态库路径
 
     右键工程->Configuration properties->linker->general->additional library directories
 
-    .. image:: http://ir.hit.edu.cn/ltp-2014/images/lib.png
+    .. image:: http://p5xnn6ehz.bkt.clouddn.com/ltp-doc-img-3.6.1-2.png
 
 3. 导入所需的动态库
 
     右键工程->properties->linker->input->additional additional dependencies
 
-    .. image:: http://ir.hit.edu.cn/ltp-2014/images/import.png
+    .. image:: http://p5xnn6ehz.bkt.clouddn.com/ltp-doc-img-3.6.1-3.png
 
 4. 最后，Build工程即可。
 
-Linux
+在 Linux 下使用动态库
 ~~~~~~~
 
 假定您下载并将LTP放置于 :file:`/path/to/your/ltp-project` 目录下,那么编译命令例如下::
 
-    g++ -o cws cws.cpp -I /path/to/your/ltp-project/include/ -I /path/to/your/ltp-project/thirdparty/boost/include -WL,-dn -L /path/to/your/ltp-project/lib/ -lsegmentor -lboost_regex -WL,-dy
+    g++ -o cws cws.cpp -I /path/to/your/ltp-project/include/ -I /path/to/your/ltp-project/thirdparty/boost/include -Wl,-dn -L /path/to/your/ltp-project/lib/ -lsegmentor -lboost_regex -Wl,-dy
 
 分词接口
 --------
@@ -460,7 +462,7 @@ Linux
     +------------------------------------------+--------------------------------------------------------------------+
     | const std::vector<std::string> & words   | 待分析的词序列                                                     |
     +------------------------------------------+--------------------------------------------------------------------+
-    | const std::vector<std::string> & postags | 待分析的词的词性序列                                                     |
+    | const std::vector<std::string> & postags | 待分析的词的词性序列                                               |
     +------------------------------------------+--------------------------------------------------------------------+
     | std::vector<int> & heads                 | 结果依存弧，heads[i]代表第i个词的父亲节点的编号                    |
     +------------------------------------------+--------------------------------------------------------------------+

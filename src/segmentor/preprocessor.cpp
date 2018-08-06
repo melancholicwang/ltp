@@ -39,8 +39,8 @@ void Preprocessor::set_flags(std::vector<int>& flags, const size_t& from,
 void Preprocessor::special_token(const std::string& sentence,
     std::vector<int>& flags) const {
 
-  size_t pos = 0;
   for (size_t i = 0; i < ltp::segmentor::special_tokens_size; ++i){
+    size_t pos = 0;
     const std::string& special_token = ltp::segmentor::special_tokens[i];
     while((pos = sentence.find(special_token, pos)) != std::string::npos){
       size_t pos_end = pos + special_token.length();
@@ -184,9 +184,15 @@ int Preprocessor::preprocess(const std::string& sentence,
         width = 1;
       }
       else if ((sent[i]&0xE0)==0xC0) { width = 2; }
-      else if ((sent[i]&0xF0)==0xE0) { width = 3; }
+      else if ((sent[i]&0xF0)==0xE0) { 
+          width = 3; 
+          if (i + 3 <= len && sent[i] == 0xffffffe3 && sent[i + 1] == 0xffffff80 && sent[i + 2] == 0xffffff80) {
+              is_space = true;
+          }
+      }
       else if ((sent[i]&0xF8)==0xF0) { width = 4; }
       else { return -1; }
+
 
       if (is_space) {
         left_status = HAS_SPACE_ON_LEFT;
